@@ -14,8 +14,10 @@
 # This work is licensed under the Creative Commons Attribution-ShareAlike 3.0
 # Unported License: http://creativecommons.org/licenses/by-sa/3.0/
 #
-# Attribution required: please include my name in any derivative and let me
-# know how you have improved it!
+# Jun modified the Lin's and Thomas's works as
+# - merging options of additional users/passwords and the base user/passwords.
+# - adding the assertion of numbers of users and passwords.
+# - adding the log options.
 
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
@@ -24,6 +26,8 @@ nospaces() { printf '%s' "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//
 onespace() { printf '%s' "$1" | tr -s ' '; }
 noquotes() { printf '%s' "$1" | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/"; }
 noquotes2() { printf '%s' "$1" | sed -e 's/" "/ /g' -e "s/' '/ /g"; }
+# commatospc() { printf '%s' "$1" | tr ',' '\n' | xargs -I{} echo "{}" | paste -s -d ' ' -; }
+countcolumn() { printf '%s' "$1" | awk -F ' ' '{print NF}'; }
 
 check_ip() {
   IP_REGEX='^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$'
@@ -49,7 +53,7 @@ ip link delete dummy0 >/dev/null 2>&1
 mkdir -p /opt/src
 vpn_env="/opt/src/vpn.env"
 vpn_gen_env="/opt/src/vpn-gen.env"
-if [ -z "$VPN_IPSEC_PSK" ] && [ -z "$VPN_USER" ] && [ -z "$VPN_PASSWORD" ]; then
+if [ -z "$VPN_IPSEC_PSK" ] && [ -z "$VPN_USERS" ] && [ -z "$VPN_PASSWORDS" ]; then
   if [ -f "$vpn_env" ]; then
     echo
     echo 'Retrieving VPN credentials...'
@@ -62,55 +66,51 @@ if [ -z "$VPN_IPSEC_PSK" ] && [ -z "$VPN_USER" ] && [ -z "$VPN_PASSWORD" ]; then
     echo
     echo 'VPN credentials not set by user. Generating random PSK and password...'
     VPN_IPSEC_PSK=$(LC_CTYPE=C tr -dc 'A-HJ-NPR-Za-km-z2-9' < /dev/urandom | head -c 20)
-    VPN_USER=vpnuser
-    VPN_PASSWORD=$(LC_CTYPE=C tr -dc 'A-HJ-NPR-Za-km-z2-9' < /dev/urandom | head -c 16)
+    VPN_USERS=vpnuser
+    VPN_PASSWORDS=$(LC_CTYPE=C tr -dc 'A-HJ-NPR-Za-km-z2-9' < /dev/urandom | head -c 16)
 
     printf '%s\n' "VPN_IPSEC_PSK='$VPN_IPSEC_PSK'" > "$vpn_gen_env"
-    printf '%s\n' "VPN_USER='$VPN_USER'" >> "$vpn_gen_env"
-    printf '%s\n' "VPN_PASSWORD='$VPN_PASSWORD'" >> "$vpn_gen_env"
+    printf '%s\n' "VPN_USERS='$VPN_USERS'" >> "$vpn_gen_env"
+    printf '%s\n' "VPN_PASSWORDS='$VPN_PASSWORDS'" >> "$vpn_gen_env"
     chmod 600 "$vpn_gen_env"
   fi
 fi
 
+
 # Remove whitespace and quotes around VPN variables, if any
 VPN_IPSEC_PSK=$(nospaces "$VPN_IPSEC_PSK")
 VPN_IPSEC_PSK=$(noquotes "$VPN_IPSEC_PSK")
-VPN_USER=$(nospaces "$VPN_USER")
-VPN_USER=$(noquotes "$VPN_USER")
-VPN_PASSWORD=$(nospaces "$VPN_PASSWORD")
-VPN_PASSWORD=$(noquotes "$VPN_PASSWORD")
+VPN_USERS=$(nospaces "$VPN_USERS")
+VPN_USERS=$(noquotes "$VPN_USERS")
+VPN_USERS=$(onespace "$VPN_USERS")
+VPN_USERS=$(noquotes2 "$VPN_USERS")
+VPN_PASSWORDS=$(nospaces "$VPN_PASSWORDS")
+VPN_PASSWORDS=$(noquotes "$VPN_PASSWORDS")
+VPN_PASSWORDS=$(onespace "$VPN_PASSWORDS")
+VPN_PASSWORDS=$(noquotes2 "$VPN_PASSWORDS")
 
-if [ -n "$VPN_ADDL_USERS" ] && [ -n "$VPN_ADDL_PASSWORDS" ]; then
-  VPN_ADDL_USERS=$(nospaces "$VPN_ADDL_USERS")
-  VPN_ADDL_USERS=$(noquotes "$VPN_ADDL_USERS")
-  VPN_ADDL_USERS=$(onespace "$VPN_ADDL_USERS")
-  VPN_ADDL_USERS=$(noquotes2 "$VPN_ADDL_USERS")
-  VPN_ADDL_PASSWORDS=$(nospaces "$VPN_ADDL_PASSWORDS")
-  VPN_ADDL_PASSWORDS=$(noquotes "$VPN_ADDL_PASSWORDS")
-  VPN_ADDL_PASSWORDS=$(onespace "$VPN_ADDL_PASSWORDS")
-  VPN_ADDL_PASSWORDS=$(noquotes2 "$VPN_ADDL_PASSWORDS")
-else
-  VPN_ADDL_USERS=""
-  VPN_ADDL_PASSWORDS=""
-fi
-
-if [ -z "$VPN_IPSEC_PSK" ] || [ -z "$VPN_USER" ] || [ -z "$VPN_PASSWORD" ]; then
+if [ -z "$VPN_IPSEC_PSK" ] || [ -z "$VPN_USERS" ] || [ -z "$VPN_PASSWORDS" ]; then
   exiterr "All VPN credentials must be specified. Edit your 'env' file and re-enter them."
 fi
 
-if printf '%s' "$VPN_IPSEC_PSK $VPN_USER $VPN_PASSWORD $VPN_ADDL_USERS $VPN_ADDL_PASSWORDS" | LC_ALL=C grep -q '[^ -~]\+'; then
+if [ $(countcolumn "$VPN_USERS") -ne $(countcolumn "$VPN_PASSWORDS") ]; then
+  exiterr "Numbers of users must be the same as that of passwords."
+fi 
+
+if printf '%s' "$VPN_IPSEC_PSK $VPN_USERS $VPN_PASSWORDS" | LC_ALL=C grep -q '[^ -~]\+'; then
   exiterr "VPN credentials must not contain non-ASCII characters."
 fi
 
-case "$VPN_IPSEC_PSK $VPN_USER $VPN_PASSWORD $VPN_ADDL_USERS $VPN_ADDL_PASSWORDS" in
+case "$VPN_IPSEC_PSK $VPN_USERS $VPN_PASSWORDS" in
   *[\\\"\']*)
     exiterr "VPN credentials must not contain these special characters: \\ \" '"
     ;;
 esac
 
-if printf '%s' "$VPN_USER $VPN_ADDL_USERS" | tr ' ' '\n' | sort | uniq -c | grep -qv '^ *1 '; then
+if printf '%s' "$VPN_USERS" | tr ' ' '\n' | sort | uniq -c | grep -qv '^ *1 '; then
   exiterr "VPN usernames must not contain duplicates."
 fi
+
 
 # Check DNS servers and try to resolve hostnames to IPs
 if [ -n "$VPN_DNS_SRV1" ]; then
@@ -152,14 +152,12 @@ DNS_SRVS="\"$DNS_SRV1 $DNS_SRV2\""
 [ -n "$VPN_DNS_SRV1" ] && [ -z "$VPN_DNS_SRV2" ] && DNS_SRVS="$DNS_SRV1"
 
 ############################################################################
-# Append by Jun Kurihara
 # routes to ipsec
 if [ -z "$VPN_IPSEC_XAUTH_ROUTES" ]; then
     IPSEC_XAUTH_ROUTES="0.0.0.0/0"
 else
     IPSEC_XAUTH_ROUTES=XAUTH_ROUTES
 fi
-echo "Routes to IPsec Server: ${IPSEC_XAUTH_ROUTES}"
 
 # log
 if [ -z "$VPN_IPSEC_LOG_LEVEL" ]; then
@@ -167,10 +165,8 @@ if [ -z "$VPN_IPSEC_LOG_LEVEL" ]; then
 else
     IPSEC_LOG_LEVEL=LOG_LEVEL
 fi
-echo "IPsec Log Level: ${IPSEC_LOG_LEVEL}"
 
 IPSEC_LOG_FILE=/var/log/ipsec/ipsec.log
-echo "IPsec Log File: ${IPSEC_LOG_FILE}"
 ############################################################################
 
 # Create IPsec (Libreswan) config
@@ -273,33 +269,21 @@ ms-dns $DNS_SRV2
 EOF
 fi
 
-# Create VPN credentials
-cat > /etc/ppp/chap-secrets <<EOF
-"$VPN_USER" l2tpd "$VPN_PASSWORD" *
-EOF
-
-VPN_PASSWORD_ENC=$(openssl passwd -1 "$VPN_PASSWORD")
-cat > /etc/ipsec.d/passwd <<EOF
-$VPN_USER:$VPN_PASSWORD_ENC:xauth-psk
-EOF
-
-if [ -n "$VPN_ADDL_USERS" ] && [ -n "$VPN_ADDL_PASSWORDS" ]; then
-  count=1
-  addl_user=$(printf '%s' "$VPN_ADDL_USERS" | cut -d ' ' -f 1)
-  addl_password=$(printf '%s' "$VPN_ADDL_PASSWORDS" | cut -d ' ' -f 1)
-  while [ -n "$addl_user" ] && [ -n "$addl_password" ]; do
-    addl_password_enc=$(openssl passwd -1 "$addl_password")
+count=1
+cuser=$(printf '%s' "$VPN_USERS" | cut -d ' ' -f 1)
+cpassword=$(printf '%s' "$VPN_PASSWORDS" | cut -d ' ' -f 1)
+while [ -n "$cuser" ] && [ -n "$cpassword" ]; do
+  cpassword_enc=$(openssl passwd -1 "$cpassword")
 cat >> /etc/ppp/chap-secrets <<EOF
-"$addl_user" l2tpd "$addl_password" *
+"$cuser" l2tpd "$cpassword" *
 EOF
 cat >> /etc/ipsec.d/passwd <<EOF
-$addl_user:$addl_password_enc:xauth-psk
+$cuser:$cpassword_enc:xauth-psk
 EOF
-    count=$((count+1))
-    addl_user=$(printf '%s' "$VPN_ADDL_USERS" | cut -s -d ' ' -f "$count")
-    addl_password=$(printf '%s' "$VPN_ADDL_PASSWORDS" | cut -s -d ' ' -f "$count")
-  done
-fi
+  count=$((count+1))
+  cuser=$(printf '%s' "$VPN_USERS" | cut -s -d ' ' -f "$count")
+  cpassword=$(printf '%s' "$VPN_PASSWORDS" | cut -s -d ' ' -f "$count")
+done
 
 # Update sysctl settings
 SYST='/sbin/sysctl -e -q -w'
@@ -358,29 +342,29 @@ IPsec VPN server is now ready for use!
 Connect to your new VPN with these details:
 
 IPsec Server IP: $PUBLIC_IP
+Added Routes: $IPSEC_XAUTH_ROUTES
 DNS Server IP: $DNS_SRVS
+IPsec Log Level: $IPSEC_LOG_LEVEL
+IPsec Log File: $IPSEC_LOG_FILE
 IPsec PSK: $VPN_IPSEC_PSK
-Username: $VPN_USER
-Password: $VPN_PASSWORD
 EOF
 
-if [ -n "$VPN_ADDL_USERS" ] && [ -n "$VPN_ADDL_PASSWORDS" ]; then
-  count=1
-  addl_user=$(printf '%s' "$VPN_ADDL_USERS" | cut -d ' ' -f 1)
-  addl_password=$(printf '%s' "$VPN_ADDL_PASSWORDS" | cut -d ' ' -f 1)
+count=1
+cuser=$(printf '%s' "$VPN_USERS" | cut -d ' ' -f 1)
+cpassword=$(printf '%s' "$VPN_PASSWORDS" | cut -d ' ' -f 1)
 cat <<'EOF'
 
-Additional VPN users (username | password):
+VPN users (username | password):
 EOF
-  while [ -n "$addl_user" ] && [ -n "$addl_password" ]; do
+while [ -n "$cuser" ] && [ -n "$cpassword" ]; do
 cat <<EOF
-$addl_user | $addl_password
+$cuser | $cpassword
 EOF
-    count=$((count+1))
-    addl_user=$(printf '%s' "$VPN_ADDL_USERS" | cut -s -d ' ' -f "$count")
-    addl_password=$(printf '%s' "$VPN_ADDL_PASSWORDS" | cut -s -d ' ' -f "$count")
-  done
-fi
+  count=$((count+1))
+  cuser=$(printf '%s' "$VPN_USERS" | cut -s -d ' ' -f "$count")
+  cpassword=$(printf '%s' "$VPN_PASSWORDS" | cut -s -d ' ' -f "$count")
+done
+
 
 cat <<'EOF'
 
