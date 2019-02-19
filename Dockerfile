@@ -1,5 +1,7 @@
 FROM debian:stretch
-LABEL maintainer="Lin Song <linsongui@gmail.com>"
+
+LABEL maintainer="Original: Lin Song <linsongui@gmail.com>"
+LABEL maintainer="Modified by: Jun Kurihara <kurihara@ieee.org>"
 
 ENV REFRESHED_AT 2019-01-30
 ENV SWAN_VER 3.27
@@ -46,11 +48,12 @@ RUN apt-get -yqq update \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ./run.sh /opt/src/run.sh
+COPY /docker-bin/run.sh /opt/src/run.sh
 RUN chmod 755 /opt/src/run.sh
 
 EXPOSE 500/udp 4500/udp
 
-VOLUME ["/lib/modules"]
+#VOLUME ["/lib/modules"]
+VOLUME ["/lib/modules", "/var/log/ipsec/"]
 
 CMD ["/opt/src/run.sh"]

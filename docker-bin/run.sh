@@ -6,9 +6,9 @@
 # IN A DOCKER CONTAINER!
 #
 # This file is part of IPsec VPN Docker image, available at:
-# https://github.com/hwdsl2/docker-ipsec-vpn-server
-#
-# Copyright (C) 2016-2019 Lin Song <linsongui@gmail.com>
+# https://github.com/jqtype/docker-ipsec
+# Copyright (C) 2019 Jun Kurihara <kurihara@ieee.org>
+# Based on the work of Lin Song <linsongui@gmail.com> (Copyright 2016-2019)
 # Based on the work of Thomas Sarlandie (Copyright 2012)
 #
 # This work is licensed under the Creative Commons Attribution-ShareAlike 3.0
@@ -151,6 +151,28 @@ DNS_SRV2=${VPN_DNS_SRV2:-'8.8.4.4'}
 DNS_SRVS="\"$DNS_SRV1 $DNS_SRV2\""
 [ -n "$VPN_DNS_SRV1" ] && [ -z "$VPN_DNS_SRV2" ] && DNS_SRVS="$DNS_SRV1"
 
+############################################################################
+# Append by Jun Kurihara
+# routes to ipsec
+if [ -z "$VPN_IPSEC_XAUTH_ROUTES" ]; then
+    IPSEC_XAUTH_ROUTES="0.0.0.0/0"
+else
+    IPSEC_XAUTH_ROUTES=XAUTH_ROUTES
+fi
+echo "Routes to IPsec Server: ${IPSEC_XAUTH_ROUTES}"
+
+# log
+if [ -z "$VPN_IPSEC_LOG_LEVEL" ]; then
+    IPSEC_LOG_LEVEL=none
+else
+    IPSEC_LOG_LEVEL=LOG_LEVEL
+fi
+echo "IPsec Log Level: ${IPSEC_LOG_LEVEL}"
+
+IPSEC_LOG_FILE=/var/log/ipsec/ipsec.log
+echo "IPsec Log File: ${IPSEC_LOG_FILE}"
+############################################################################
+
 # Create IPsec (Libreswan) config
 cat > /etc/ipsec.conf <<EOF
 version 2.0
@@ -160,6 +182,8 @@ config setup
   protostack=netkey
   interfaces=%defaultroute
   uniqueids=no
+  plutodebug=${IPSEC_LOG_LEVEL}
+  logfile=${IPSEC_LOG_FILE}
 
 conn shared
   left=%defaultroute
@@ -187,7 +211,7 @@ conn l2tp-psk
 
 conn xauth-psk
   auto=add
-  leftsubnet=0.0.0.0/0
+  leftsubnet=${IPSEC_XAUTH_ROUTES}
   rightaddresspool=$XAUTH_POOL
   modecfgdns=$DNS_SRVS
   leftxauthserver=yes
@@ -333,7 +357,8 @@ IPsec VPN server is now ready for use!
 
 Connect to your new VPN with these details:
 
-Server IP: $PUBLIC_IP
+IPsec Server IP: $PUBLIC_IP
+DNS Server IP: $DNS_SRVS
 IPsec PSK: $VPN_IPSEC_PSK
 Username: $VPN_USER
 Password: $VPN_PASSWORD

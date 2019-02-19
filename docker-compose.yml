@@ -2,7 +2,7 @@ version: '3'
 
 services:
   vpn:
-    image: hwdsl2/ipsec-vpn-server
+    image: jqtype/ipsec-xauth-psk
     restart: always
     env_file:
       - ./vpn.env
@@ -10,7 +10,7 @@ services:
       - "500:500/udp"
       - "4500:4500/udp"
     privileged: true
-    hostname: ipsec-vpn-server
-    container_name: ipsec-vpn-server
+    container_name: ipsec-xauth-psk
     volumes:
       - /lib/modules:/lib/modules:ro
+      - ./log:/var/log/ipsec
