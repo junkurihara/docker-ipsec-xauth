@@ -377,6 +377,12 @@ Setup VPN clients: https://git.io/vpnclients
 
 EOF
 
+####################################
+# generate mobileconfig
+echo "-- Generate mobileconfig"
+/opt/src/generate-mobileconfig.sh
+####################################
+
 # Load IPsec kernel module
 modprobe af_key
 

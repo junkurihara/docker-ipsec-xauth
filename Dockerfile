@@ -49,11 +49,13 @@ RUN apt-get -yqq update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY /docker-bin/run.sh /opt/src/run.sh
-RUN chmod 755 /opt/src/run.sh
+COPY /docker-bin/generate-mobileconfig.sh /opt/src/generate-mobileconfig.sh
+RUN chmod 755 /opt/src/*.sh && \
+    mkdir -p /data
 
 EXPOSE 500/udp 4500/udp
 
 #VOLUME ["/lib/modules"]
-VOLUME ["/lib/modules", "/var/log/ipsec/"]
+VOLUME ["/lib/modules", "/var/log/ipsec/", "/data"]
 
 CMD ["/opt/src/run.sh"]
