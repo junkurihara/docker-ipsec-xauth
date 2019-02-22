@@ -75,7 +75,7 @@ while [ -n "$cuser" ] && [ -n "$cpassword" ]; do
 				<integer>0</integer>
 			</dict>
 			<key>UserDefinedName</key>
-			<string>xAuth Experimental</string>
+			<string>IPsec xAuth for ${VPN_HOST_NAME}</string>
 			<key>VPNType</key>
 			<string>IPSec</string>
 			<key>DNS</key>
