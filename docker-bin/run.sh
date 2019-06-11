@@ -383,9 +383,6 @@ echo "-- Generate mobileconfig"
 /opt/src/generate-mobileconfig.sh
 ####################################
 
-# Load IPsec kernel module
-modprobe af_key
-
 # Start services
 mkdir -p /run/pluto /var/run/pluto /var/run/xl2tpd
 rm -f /run/pluto/pluto.pid /var/run/pluto/pluto.pid /var/run/xl2tpd.pid

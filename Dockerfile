@@ -58,7 +58,7 @@ RUN chmod 755 /opt/src/*.sh && \
 EXPOSE 500/udp 4500/udp
 
 #VOLUME ["/lib/modules"]
-VOLUME ["/lib/modules", "/var/log/ipsec/", "/data"]
+VOLUME ["/var/log/ipsec/", "/data"]
 
 CMD ["/opt/src/run.sh"]
 

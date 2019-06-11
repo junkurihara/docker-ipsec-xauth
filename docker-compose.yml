@@ -13,5 +13,4 @@ services:
     container_name: ipsec-xauth-psk
     volumes:
       - ./data:/data
-      - /lib/modules:/lib/modules:ro
       - ./log:/var/log/ipsec
