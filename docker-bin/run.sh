@@ -6,15 +6,11 @@
 # IN A DOCKER CONTAINER!
 #
 # This file is part of IPsec VPN Docker image, available at:
-<<<<<<< HEAD:docker-bin/run.sh
-# https://github.com/jqtype/docker-ipsec
+# https://github.com/junkurihara/docker-ipsec
 # Copyright (C) 2019 Jun Kurihara <kurihara@ieee.org>
-# Based on the work of Lin Song <linsongui@gmail.com> (Copyright 2016-2019)
-=======
+# Based on the work of Lin Song <linsongui@gmail.com>
 # https://github.com/hwdsl2/docker-ipsec-vpn-server
-#
 # Copyright (C) 2016-2020 Lin Song <linsongui@gmail.com>
->>>>>>> upstream/master:run.sh
 # Based on the work of Thomas Sarlandie (Copyright 2012)
 #
 # This work is licensed under the Creative Commons Attribution-ShareAlike 3.0
