@@ -3,8 +3,8 @@ FROM debian:stretch
 LABEL maintainer="Original: Lin Song <linsongui@gmail.com>"
 LABEL maintainer="Modified by: Jun Kurihara <kurihara@ieee.org>"
 
-ENV REFRESHED_AT 2019-06-10
-ENV SWAN_VER 3.29
+ENV REFRESHED_AT 2020-04-11
+ENV SWAN_VER 3.31
 ENV L2TP_VER 1.3.12
 
 WORKDIR /opt/src
@@ -28,6 +28,7 @@ RUN apt-get -yqq update \
     && printf 'WERROR_CFLAGS =\nUSE_DNSSEC = false\nUSE_DH31 = false\n' > Makefile.inc.local \
     && printf 'USE_NSS_AVA_COPY = true\nUSE_NSS_IPSEC_PROFILE = false\n' >> Makefile.inc.local \
     && printf 'USE_GLIBC_KERN_FLIP_HEADERS = true\nUSE_SYSTEMD_WATCHDOG = false\n' >> Makefile.inc.local \
+    && printf 'USE_DH2 = true\nUSE_XFRM_INTERFACE_IFLA_HEADER = true\n' >> Makefile.inc.local \
     && make -s base \
     && make -s install-base \
     && cd /opt/src \

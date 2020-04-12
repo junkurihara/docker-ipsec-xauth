@@ -6,9 +6,15 @@
 # IN A DOCKER CONTAINER!
 #
 # This file is part of IPsec VPN Docker image, available at:
+<<<<<<< HEAD:docker-bin/run.sh
 # https://github.com/jqtype/docker-ipsec
 # Copyright (C) 2019 Jun Kurihara <kurihara@ieee.org>
 # Based on the work of Lin Song <linsongui@gmail.com> (Copyright 2016-2019)
+=======
+# https://github.com/hwdsl2/docker-ipsec-vpn-server
+#
+# Copyright (C) 2016-2020 Lin Song <linsongui@gmail.com>
+>>>>>>> upstream/master:run.sh
 # Based on the work of Thomas Sarlandie (Copyright 2012)
 #
 # This work is licensed under the Creative Commons Attribution-ShareAlike 3.0
@@ -151,6 +157,7 @@ DNS_SRV2=${VPN_DNS_SRV2:-'8.8.4.4'}
 DNS_SRVS="\"$DNS_SRV1 $DNS_SRV2\""
 [ -n "$VPN_DNS_SRV1" ] && [ -z "$VPN_DNS_SRV2" ] && DNS_SRVS="$DNS_SRV1"
 
+<<<<<<< HEAD:docker-bin/run.sh
 ############################################################################
 # routes to ipsec
 if [ -z "$VPN_IPSEC_XAUTH_ROUTES" ]; then
@@ -168,6 +175,16 @@ fi
 
 IPSEC_LOG_FILE=/var/log/ipsec/ipsec.log
 ############################################################################
+=======
+case $VPN_SHA2_TRUNCBUG in
+  [yY][eE][sS])
+    SHA2_TRUNCBUG=yes
+    ;;
+  *)
+    SHA2_TRUNCBUG=no
+    ;;
+esac
+>>>>>>> upstream/master:run.sh
 
 # Create IPsec (Libreswan) config
 cat > /etc/ipsec.conf <<EOF
@@ -196,7 +213,7 @@ conn shared
   ikev2=never
   ike=aes256-sha2,aes128-sha2,aes256-sha1,aes128-sha1,aes256-sha2;modp1024,aes128-sha1;modp1024
   phase2alg=aes_gcm-null,aes128-sha1,aes256-sha1,aes256-sha2_512,aes128-sha2,aes256-sha2
-  sha2-truncbug=yes
+  sha2-truncbug=$SHA2_TRUNCBUG
 
 conn l2tp-psk
   auto=add
