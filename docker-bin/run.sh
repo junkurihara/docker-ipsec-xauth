@@ -153,7 +153,6 @@ DNS_SRV2=${VPN_DNS_SRV2:-'8.8.4.4'}
 DNS_SRVS="\"$DNS_SRV1 $DNS_SRV2\""
 [ -n "$VPN_DNS_SRV1" ] && [ -z "$VPN_DNS_SRV2" ] && DNS_SRVS="$DNS_SRV1"
 
-<<<<<<< HEAD:docker-bin/run.sh
 ############################################################################
 # routes to ipsec
 if [ -z "$VPN_IPSEC_XAUTH_ROUTES" ]; then
@@ -171,7 +170,6 @@ fi
 
 IPSEC_LOG_FILE=/var/log/ipsec/ipsec.log
 ############################################################################
-=======
 case $VPN_SHA2_TRUNCBUG in
   [yY][eE][sS])
     SHA2_TRUNCBUG=yes
@@ -180,7 +178,6 @@ case $VPN_SHA2_TRUNCBUG in
     SHA2_TRUNCBUG=no
     ;;
 esac
->>>>>>> upstream/master:run.sh
 
 # Create IPsec (Libreswan) config
 cat > /etc/ipsec.conf <<EOF
