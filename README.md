@@ -4,8 +4,6 @@
 > - supports multiple users by default (not need to use 'additional users')
 > - supports customized routes pushed from ipsec server
 
-## Installation
-
 ```shell
 $ docker pull jqtype/ipsec-xauth
 ```
